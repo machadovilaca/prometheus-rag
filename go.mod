@@ -9,6 +9,8 @@ require (
 	github.com/onsi/gomega v1.36.2
 	github.com/prometheus/client_golang v1.21.0
 	github.com/qdrant/go-client v1.13.0
+	github.com/rs/zerolog v1.31.0
+	go-simpler.org/env v0.12.0
 )
 
 require (
@@ -28,7 +30,6 @@ require (
 	github.com/nlpodyssey/spago v1.1.0 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.62.0 // indirect
-	github.com/rs/zerolog v1.31.0 // indirect
 	go.opentelemetry.io/otel v1.34.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.34.0 // indirect
 	golang.org/x/net v0.35.0 // indirect

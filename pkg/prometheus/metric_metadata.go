@@ -16,16 +16,13 @@ type MetricMetadata struct {
 	// Type indicates the type of metric (counter, gauge, histogram, etc)
 	Type string `json:"type"`
 
-	// Unit specifies the unit of measurement for the metric (optional)
-	Unit string `json:"unit,omitempty"`
-
 	// Labels contains the label names associated with the metric
 	Labels []string `json:"labels,omitempty"`
 }
 
 func (m *MetricMetadata) Validate() error {
-	if m.Name == "" || m.Help == "" || m.Type == "" {
-		return errors.New("name, help, and type are required")
+	if m.Name == "" {
+		return errors.New("name is required")
 	}
 
 	return nil
@@ -36,7 +33,6 @@ func (m *MetricMetadata) ToMap() map[string]any {
 		"name":   m.Name,
 		"help":   m.Help,
 		"type":   m.Type,
-		"unit":   m.Unit,
 		"labels": strings.Join(m.Labels, ", "),
 	}
 }

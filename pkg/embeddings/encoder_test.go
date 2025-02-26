@@ -48,7 +48,6 @@ var _ = Describe("Encoder", func() {
 				Name:   "test_metric",
 				Help:   "test help",
 				Type:   "counter",
-				Unit:   "none",
 				Labels: []string{"label1", "label2"},
 			}
 

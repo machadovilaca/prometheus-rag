@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/qdrant/go-client/qdrant"
+	"github.com/rs/zerolog/log"
 
 	"github.com/machadovilaca/prometheus-rag/pkg/prometheus"
 )
@@ -19,7 +20,7 @@ func (v *vectorDB) AddMetricMetadata(metadata *prometheus.MetricMetadata) error 
 	_, err = v.client.Upsert(
 		context.Background(),
 		&qdrant.UpsertPoints{
-			CollectionName: collectionName,
+			CollectionName: v.collectionName,
 			Points:         []*qdrant.PointStruct{pointStruct},
 		},
 	)
@@ -31,6 +32,11 @@ func (v *vectorDB) AddMetricMetadata(metadata *prometheus.MetricMetadata) error 
 }
 
 func (v *vectorDB) BatchAddMetricMetadata(metadata []*prometheus.MetricMetadata) error {
+	if len(metadata) == 0 {
+		log.Info().Msg("skipping batch add of metric metadata because there are none")
+		return nil
+	}
+
 	points := make([]*qdrant.PointStruct, len(metadata))
 
 	for i, m := range metadata {
@@ -45,7 +51,7 @@ func (v *vectorDB) BatchAddMetricMetadata(metadata []*prometheus.MetricMetadata)
 	_, err := v.client.Upsert(
 		context.Background(),
 		&qdrant.UpsertPoints{
-			CollectionName: collectionName,
+			CollectionName: v.collectionName,
 			Points:         points,
 		},
 	)

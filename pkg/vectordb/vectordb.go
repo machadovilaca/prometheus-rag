@@ -10,10 +10,6 @@ import (
 	"github.com/machadovilaca/prometheus-rag/pkg/prometheus"
 )
 
-const (
-	collectionName = "metrics"
-)
-
 // VectorDB represents the interface for interacting with the vector database
 type VectorDB interface {
 	// CreateCollection creates the collection in the vector database
@@ -41,12 +37,15 @@ type Config struct {
 	Host string
 	Port int
 
+	CollectionName         string
 	EncoderOutputDirectory string
 }
 
 type vectorDB struct {
 	client  *qdrant.Client
 	encoder embeddings.Encoder
+
+	collectionName string
 }
 
 // New creates a new Qdrant client connection
@@ -66,7 +65,11 @@ func New(cfg Config) (VectorDB, error) {
 		return nil, fmt.Errorf("failed to create encoder: %w", err)
 	}
 
-	v := &vectorDB{client: client, encoder: encoder}
+	if cfg.CollectionName == "" {
+		return nil, fmt.Errorf("collection name is required")
+	}
+
+	v := &vectorDB{client: client, encoder: encoder, collectionName: cfg.CollectionName}
 
 	if err := v.CreateCollection(); err != nil {
 		return nil, fmt.Errorf("failed to create collection: %w", err)
@@ -76,7 +79,7 @@ func New(cfg Config) (VectorDB, error) {
 }
 
 func (v *vectorDB) CreateCollection() error {
-	exists, err := v.client.CollectionExists(context.Background(), collectionName)
+	exists, err := v.client.CollectionExists(context.Background(), v.collectionName)
 	if err != nil {
 		return fmt.Errorf("failed to check if collection exists: %w", err)
 	}
@@ -91,7 +94,7 @@ func (v *vectorDB) CreateCollection() error {
 	}
 
 	if err = v.client.CreateCollection(context.Background(), &qdrant.CreateCollection{
-		CollectionName: collectionName,
+		CollectionName: v.collectionName,
 		VectorsConfig: qdrant.NewVectorsConfig(&qdrant.VectorParams{
 			Size:     uint64(encodingDimension),
 			Distance: qdrant.Distance_Cosine,
@@ -104,7 +107,7 @@ func (v *vectorDB) CreateCollection() error {
 }
 
 func (v *vectorDB) DeleteCollection() error {
-	return v.client.DeleteCollection(context.Background(), collectionName)
+	return v.client.DeleteCollection(context.Background(), v.collectionName)
 }
 
 func (v *vectorDB) Close() error {

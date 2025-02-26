@@ -17,7 +17,7 @@ func (v *vectorDB) SearchMetrics(query string, limit uint64) ([]*prometheus.Metr
 	}
 
 	searchResults, err := v.client.Query(context.Background(), &qdrant.QueryPoints{
-		CollectionName: collectionName,
+		CollectionName: v.collectionName,
 		Query:          qdrant.NewQueryDense(encodedQuery),
 		Limit:          &limit,
 		WithPayload:    qdrant.NewWithPayloadEnable(true),
@@ -42,7 +42,6 @@ func fromQdrantMap(m map[string]*qdrant.Value) *prometheus.MetricMetadata {
 		Name:   m["name"].GetStringValue(),
 		Help:   m["help"].GetStringValue(),
 		Type:   m["type"].GetStringValue(),
-		Unit:   m["unit"].GetStringValue(),
 		Labels: strings.Split(m["labels"].GetStringValue(), ", "),
 	}
 }

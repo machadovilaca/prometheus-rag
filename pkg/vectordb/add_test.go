@@ -16,8 +16,9 @@ var _ = Describe("Add", func() {
 	BeforeEach(func() {
 		var err error
 		db, err = vectordb.New(vectordb.Config{
-			Host: "localhost",
-			Port: 6334,
+			Host:           "localhost",
+			Port:           6334,
+			CollectionName: "test-collection",
 		})
 		Expect(err).NotTo(HaveOccurred())
 	})
@@ -35,7 +36,6 @@ var _ = Describe("Add", func() {
 			Name:   "test_metric",
 			Help:   "Test metric help text",
 			Type:   "counter",
-			Unit:   "seconds",
 			Labels: []string{"label1", "label2"},
 		}
 
@@ -51,7 +51,7 @@ var _ = Describe("Add", func() {
 
 		err := db.AddMetricMetadata(metadata)
 		Expect(err).To(HaveOccurred())
-		Expect(err.Error()).To(ContainSubstring("name, help, and type are required"))
+		Expect(err.Error()).To(ContainSubstring("name is required"))
 	})
 
 	It("should replace existing metric metadata", func() {
@@ -98,5 +98,14 @@ var _ = Describe("Add", func() {
 
 		Expect(results).To(ContainElement(HaveField("Name", "test_metric_1")))
 		Expect(results).To(ContainElement(HaveField("Name", "test_metric_2")))
+	})
+
+	It("should skip batch add of metric metadata when there are none", func() {
+		err := db.BatchAddMetricMetadata([]*prometheus.MetricMetadata{})
+		Expect(err).NotTo(HaveOccurred())
+
+		results, err := db.SearchMetrics("test", 10)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(results).To(HaveLen(0))
 	})
 })

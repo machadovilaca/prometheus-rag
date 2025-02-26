@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/rs/zerolog/log"
+
 	promAPI "github.com/prometheus/client_golang/api"
 	promv1 "github.com/prometheus/client_golang/api/prometheus/v1"
 )
@@ -48,10 +50,10 @@ func (p *api) ListMetricsMetadata() ([]*MetricMetadata, error) {
 		return nil, fmt.Errorf("failed to list metrics metadata: %w", err)
 	}
 
-	return convertMetadata(results), nil
+	return p.convertMetadata(results), nil
 }
 
-func convertMetadata(results map[string][]promv1.Metadata) []*MetricMetadata {
+func (p *api) convertMetadata(results map[string][]promv1.Metadata) []*MetricMetadata {
 	metrics := make([]*MetricMetadata, 0, len(results))
 
 	for metric, metadata := range results {
@@ -59,10 +61,23 @@ func convertMetadata(results map[string][]promv1.Metadata) []*MetricMetadata {
 			Name:   metric,
 			Help:   metadata[0].Help,
 			Type:   string(metadata[0].Type),
-			Unit:   metadata[0].Unit,
-			Labels: []string{},
+			Labels: p.getMetricLabels(metric),
 		})
 	}
 
 	return metrics
+}
+
+func (p *api) getMetricLabels(metric string) []string {
+	v1api := promv1.NewAPI(p.client)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	results, _, err := v1api.LabelNames(ctx, []string{metric}, time.Time{}, time.Time{})
+	if err != nil {
+		log.Error().Err(err).Msg("failed to get metric labels")
+		return []string{}
+	}
+
+	return results
 }

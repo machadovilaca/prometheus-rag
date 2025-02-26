@@ -16,8 +16,9 @@ var _ = Describe("Search", func() {
 	BeforeEach(func() {
 		var err error
 		db, err = vectordb.New(vectordb.Config{
-			Host: "localhost",
-			Port: 6334,
+			Host:           "localhost",
+			Port:           6334,
+			CollectionName: "test-collection",
 		})
 		Expect(err).NotTo(HaveOccurred())
 	})
@@ -35,7 +36,6 @@ var _ = Describe("Search", func() {
 			Name:   "http_requests_total",
 			Help:   "Total number of HTTP requests",
 			Type:   "counter",
-			Unit:   "requests",
 			Labels: []string{"method", "status"},
 		})
 		Expect(err).NotTo(HaveOccurred())
@@ -44,7 +44,6 @@ var _ = Describe("Search", func() {
 			Name:   "node_memory_usage",
 			Help:   "Memory usage of node",
 			Type:   "gauge",
-			Unit:   "bytes",
 			Labels: []string{"node"},
 		})
 		Expect(err).NotTo(HaveOccurred())
