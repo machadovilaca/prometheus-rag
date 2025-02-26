@@ -1,0 +1,64 @@
+# HELP kubevirt_info Version information.
+# TYPE kubevirt_info gauge
+kubevirt_info{version="v1.0.0",git_commit="abc123",namespace="kubevirt"} 1
+
+# HELP kubevirt_nodes_with_kvm The number of nodes in the cluster that have the devices.kubevirt.io/kvm resource available.
+# TYPE kubevirt_nodes_with_kvm gauge
+kubevirt_nodes_with_kvm{cluster="prod"} 5
+
+# HELP kubevirt_number_of_vms The number of VMs in the cluster by namespace.
+# TYPE kubevirt_number_of_vms gauge
+kubevirt_number_of_vms{namespace="default"} 2
+kubevirt_number_of_vms{namespace="test"} 3
+
+# HELP kubevirt_vm_created_by_pod_total The total number of VMs created by namespace and virt-api pod, since install.
+# TYPE kubevirt_vm_created_by_pod_total counter
+kubevirt_vm_created_by_pod_total{namespace="default",pod="virt-api-abc"} 10
+kubevirt_vm_created_by_pod_total{namespace="test",pod="virt-api-xyz"} 4
+
+# HELP kubevirt_vm_created_total The total number of VMs created by namespace, since install.
+# TYPE kubevirt_vm_created_total counter
+kubevirt_vm_created_total{namespace="default"} 12
+kubevirt_vm_created_total{namespace="test"} 5
+
+# HELP kubevirt_vm_info Information about Virtual Machines.
+# TYPE kubevirt_vm_info gauge
+kubevirt_vm_info{namespace="default",vm_name="vm-1"} 1
+kubevirt_vm_info{namespace="test",vm_name="vm-2"} 1
+
+# HELP kubevirt_vm_resource_limits Resources limits by Virtual Machine. Reports memory and CPU limits.
+# TYPE kubevirt_vm_resource_limits gauge
+kubevirt_vm_resource_limits{namespace="default",vm_name="vm-1",resource="memory"} 1048576
+kubevirt_vm_resource_limits{namespace="default",vm_name="vm-1",resource="cpu"} 2
+kubevirt_vm_resource_limits{namespace="test",vm_name="vm-2",resource="memory"} 2097152
+kubevirt_vm_resource_limits{namespace="test",vm_name="vm-2",resource="cpu"} 4
+
+# HELP kubevirt_vm_resource_requests Resources requested by Virtual Machine. Reports memory and CPU requests.
+# TYPE kubevirt_vm_resource_requests gauge
+kubevirt_vm_resource_requests{namespace="default",vm_name="vm-1",resource="memory"} 524288
+kubevirt_vm_resource_requests{namespace="default",vm_name="vm-1",resource="cpu"} 1
+kubevirt_vm_resource_requests{namespace="test",vm_name="vm-2",resource="memory"} 1048576
+kubevirt_vm_resource_requests{namespace="test",vm_name="vm-2",resource="cpu"} 2
+
+# HELP kubevirt_vmi_cpu_system_usage_seconds_total Total CPU time spent in system mode.
+# TYPE kubevirt_vmi_cpu_system_usage_seconds_total counter
+kubevirt_vmi_cpu_system_usage_seconds_total{namespace="default",vm_name="vm-1"} 120
+kubevirt_vmi_cpu_system_usage_seconds_total{namespace="test",vm_name="vm-2"} 200
+
+# HELP kubevirt_vmi_cpu_usage_seconds_total Total CPU time spent in all modes (sum of both vcpu and hypervisor usage).
+# TYPE kubevirt_vmi_cpu_usage_seconds_total counter
+kubevirt_vmi_cpu_usage_seconds_total{namespace="default",vm_name="vm-1"} 300
+kubevirt_vmi_cpu_usage_seconds_total{namespace="test",vm_name="vm-2"} 500
+
+# HELP kubevirt_vmi_cpu_user_usage_seconds_total Total CPU time spent in user mode.
+# TYPE kubevirt_vmi_cpu_user_usage_seconds_total counter
+kubevirt_vmi_cpu_user_usage_seconds_total{namespace="default",vm_name="vm-1"} 100
+kubevirt_vmi_cpu_user_usage_seconds_total{namespace="test",vm_name="vm-2"} 250
+
+# HELP kubevirt_vmi_migration_start_time_seconds The time at which the migration started.
+# TYPE kubevirt_vmi_migration_start_time_seconds gauge
+kubevirt_vmi_migration_start_time_seconds{namespace="default",vm_name="vm-1",migration_id="mig-abc123"} 1677420000
+
+# HELP kubevirt_vmi_migration_end_time_seconds The time at which the migration ended.
+# TYPE kubevirt_vmi_migration_end_time_seconds gauge
+kubevirt_vmi_migration_end_time_seconds{namespace="default",vm_name="vm-1",migration_id="mig-abc123"} 1677423600
