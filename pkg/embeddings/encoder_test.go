@@ -19,8 +19,7 @@ var _ = Describe("Encoder", func() {
 		var err error
 
 		encoder, err = embeddings.NewEncoder(embeddings.Config{
-			ModelsDir: "models",
-			ModelName: "bert-base-uncased",
+			ModelsDir: "../../_models",
 		})
 		Expect(err).NotTo(HaveOccurred())
 	})
