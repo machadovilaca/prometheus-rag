@@ -7,6 +7,7 @@ require (
 	github.com/nlpodyssey/cybertron v0.2.1
 	github.com/onsi/ginkgo/v2 v2.22.2
 	github.com/onsi/gomega v1.36.2
+	github.com/openai/openai-go v0.1.0-alpha.61
 	github.com/prometheus/client_golang v1.21.0
 	github.com/qdrant/go-client v1.13.0
 	github.com/rs/zerolog v1.31.0
@@ -30,6 +31,10 @@ require (
 	github.com/nlpodyssey/spago v1.1.0 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.62.0 // indirect
+	github.com/tidwall/gjson v1.14.4 // indirect
+	github.com/tidwall/match v1.1.1 // indirect
+	github.com/tidwall/pretty v1.2.1 // indirect
+	github.com/tidwall/sjson v1.2.5 // indirect
 	go.opentelemetry.io/otel v1.34.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.34.0 // indirect
 	golang.org/x/net v0.35.0 // indirect
