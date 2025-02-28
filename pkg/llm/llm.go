@@ -2,10 +2,13 @@ package llm
 
 import (
 	"context"
+	"encoding/xml"
 	"fmt"
+	"strings"
 
 	"github.com/openai/openai-go"
 	"github.com/openai/openai-go/option"
+	"github.com/rs/zerolog/log"
 
 	"github.com/machadovilaca/prometheus-rag/pkg/vectordb"
 )
@@ -78,5 +81,33 @@ func (l *llm) Run(query string) (string, error) {
 		return "", fmt.Errorf("failed to run llm: %w", err)
 	}
 
-	return chatCompletion.Choices[0].Message.Content, nil
+	if len(chatCompletion.Choices) == 0 {
+		log.Error().Msg("no choices returned")
+		return "", fmt.Errorf("no choices returned")
+	}
+
+	parsed, err := parseXMLExtract(chatCompletion.Choices[0].Message.Content)
+	if err != nil {
+		log.Error().Err(err).Msg("failed to parse XML response")
+		return "", fmt.Errorf("failed to parse XML response: %w", err)
+	}
+
+	return parsed, nil
+}
+
+type xmlResponse struct {
+	Query struct {
+		PromQL string `xml:"promql"`
+	} `xml:"query"`
+}
+
+func parseXMLExtract(xmlStr string) (string, error) {
+	var response xmlResponse
+	decoder := xml.NewDecoder(strings.NewReader(xmlStr))
+	err := decoder.Decode(&response)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse XML response: %w", err)
+	}
+
+	return response.Query.PromQL, nil
 }

@@ -56,7 +56,7 @@ var _ = Describe("LLM", func() {
 
 	Context("Run", func() {
 		It("should successfully run query", func() {
-			query := "What is the meaning of life? Max 5 words"
+			query := "Number of up pods"
 
 			response, err := llmClient.Run(query)
 			Expect(err).NotTo(HaveOccurred())

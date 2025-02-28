@@ -17,10 +17,22 @@ You should have a LLM server running, and set the environment variable `PRAG_LLM
 go run main.go
 ```
 
+## Query RAG
+
+```bash
+curl -X POST \
+  http://localhost:8080/query \
+  -H "Content-Type: application/json" \
+  -d '{"query": "What is the total number of VMs?"}'
+```
+
 ## Environment variables
 
 ```bash
 PRAG_DEBUG - enable debug mode (default: false, values: true, false)
+
+PRAG_HOST - host (default: 0.0.0.0)
+PRAG_PORT - port (default: 8080)
 
 PRAG_PROMETHEUS_ADDRESS - Prometheus address (default: http://localhost:9090)
 PRAG_PROMETHEUS_REFRESH_RATE_MINUTES - Prometheus refresh rate in minutes (default: 10)

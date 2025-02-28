@@ -2,16 +2,17 @@ package main
 
 import (
 	"log"
-	"time"
 
+	"github.com/machadovilaca/prometheus-rag/pkg/server"
 	"github.com/rs/zerolog"
 	"go-simpler.org/env"
-
-	"github.com/machadovilaca/prometheus-rag/pkg/rag"
 )
 
 type config struct {
 	Debug bool `env:"PRAG_DEBUG" default:"false"`
+
+	Host string `env:"PRAG_HOST" default:"0.0.0.0"`
+	Port string `env:"PRAG_PORT" default:"8080"`
 }
 
 func main() {
@@ -25,17 +26,13 @@ func main() {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	}
 
-	rag, err := rag.New()
+	server, err := server.New(cfg.Host, cfg.Port)
 	if err != nil {
-		log.Fatalf("failed to run RAG: %v", err)
+		log.Fatalf("failed to create server: %v", err)
 	}
 
-	time.Sleep(10 * time.Second)
-
-	answer, err := rag.Query("line graph with the increase of the total number of VMs per namespace")
+	err = server.Start()
 	if err != nil {
-		log.Fatalf("failed to query RAG: %v", err)
+		log.Fatalf("failed to start server: %v", err)
 	}
-
-	log.Printf("answer: %s", answer)
 }
