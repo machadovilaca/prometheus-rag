@@ -58,6 +58,9 @@ func New() (*Client, error) {
 		Model:          r.cfg.LLMModel,
 		VectorDBClient: r.vectorDBClient,
 	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create LLM client: %w", err)
+	}
 
 	err = r.startPrometheusSync()
 	if err != nil {
@@ -110,11 +113,8 @@ func (r *Client) startPrometheusSync() error {
 	go func() {
 		r.listMetricsMetadata()
 
-		for {
-			select {
-			case <-ticker.C:
-				r.listMetricsMetadata()
-			}
+		for range ticker.C {
+			r.listMetricsMetadata()
 		}
 	}()
 

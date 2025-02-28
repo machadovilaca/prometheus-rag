@@ -1,0 +1,20 @@
+linters:
+  enable:
+    - gofmt
+    - govet
+    - revive
+    - gosimple
+    - staticcheck
+    - ineffassign
+    - unused
+    - misspell
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+
+linters-settings:
+  revive:
+    rules:
+      - name: dot-imports
+        exclude: ["TEST"]

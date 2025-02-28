@@ -72,7 +72,12 @@ func (s *Server) handleQuery(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{
+	err = json.NewEncoder(w).Encode(map[string]string{
 		"response": response,
 	})
+	if err != nil {
+		log.Error().Err(err).Msg("failed to encode response")
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
 }
