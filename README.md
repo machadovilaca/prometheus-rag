@@ -1,48 +1,98 @@
+# Prometheus RAG: A natural language interface for Prometheus metrics using RAG (Retrieval-Augmented Generation)
 
-# Run locally
+Prometheus RAG bridges the gap between natural language and Prometheus metrics by implementing a Retrieval-Augmented Generation (RAG) system. It allows users to query metrics using plain English, automatically finding relevant metrics and generating appropriate PromQL queries.
 
-## Run development Qdrant VectorDB and Prometheus server
+Key features:
 
-```bash
-cd hack && docker compose up -d
-```
+- Natural language to PromQL translation
 
-## Run development LLM server
+- Automatic metric metadata synchronization
 
-You should have a LLM server running, and set the environment variable `PRAG_LLM_BASE_URL` and `PRAG_LLM_API_KEY` to the correct values.
+- Vector similarity search for relevant metrics
 
-## Run RAG
+- BERT-based encoding for semantic understanding
 
-```bash
-go run main.go
-```
+- Integration with vector database
 
-## Query RAG
+This guide will help you set up and run Prometheus RAG locally for development.
 
-```bash
-curl -X POST \
-  http://localhost:8080/query \
-  -H "Content-Type: application/json" \
-  -d '{"query": "What is the total number of VMs?"}'
-```
+## Prerequisites
 
-## Environment variables
+- Podman/Docker and Podman/Docker Compose
+- Go 1.21+
+- Access to an LLM server
 
-```bash
-PRAG_DEBUG - enable debug mode (default: false, values: true, false)
+## Quick Start
 
-PRAG_HOST - host (default: 0.0.0.0)
-PRAG_PORT - port (default: 8080)
+1. **Start VectorDB and Prometheus**
 
-PRAG_PROMETHEUS_ADDRESS - Prometheus address (default: http://localhost:9090)
-PRAG_PROMETHEUS_REFRESH_RATE_MINUTES - Prometheus refresh rate in minutes (default: 10)
+   Launch the development Qdrant VectorDB and Prometheus server:
 
-PRAG_VECTORDB_HOST - vectorDB host (default: localhost)
-PRAG_VECTORDB_PORT - vectorDB port (default: 6334)
-PRAG_VECTORDB_COLLECTION - vectorDB collection (default: prag-metrics)
-PRAG_VECTORDB_ENCODER_DIR - vectorDB encoder directory (default: ./_models)
+   ```bash
+   # You can use podman or docker
+   cd hack && docker compose up -d
+   ```
 
-PRAG_LLM_BASE_URL - LLM base URL (default: http://localhost:1234/v1/)
-PRAG_LLM_API_KEY - LLM API key
-PRAG_LLM_MODEL - LLM model (default: granite-3.1-8b-instruct)
-```
+2. **Configure LLM Server**
+
+   Ensure you have a running LLM server and set these required environment variables:
+
+   ```bash
+   export PRAG_LLM_BASE_URL="your-llm-server-url"
+   export PRAG_LLM_API_KEY="your-api-key"
+   ```
+
+3. **Start RAG Server**
+
+   Launch the RAG application:
+
+   ```bash
+   go run main.go
+   ```
+
+4. **Test the Service**
+
+   Send a test query:
+
+   ```bash
+   curl -X POST \
+     http://localhost:8080/query \
+     -H "Content-Type: application/json" \
+     -d '{"query": "What is the total number of VMs?"}'
+   ```
+
+## Configuration
+
+The application can be configured using the following environment variables:
+
+### Server Configuration
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `PRAG_DEBUG` | Enable debug logging | `false` |
+| `PRAG_HOST` | Server host address | `0.0.0.0` |
+| `PRAG_PORT` | Server port | `8080` |
+
+### Prometheus Configuration
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `PRAG_PROMETHEUS_ADDRESS` | Prometheus server URL | `http://localhost:9090` |
+| `PRAG_PROMETHEUS_REFRESH_RATE_MINUTES` | Metadata refresh interval | `10` |
+
+### VectorDB Configuration
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `PRAG_VECTORDB_HOST` | Qdrant server host | `localhost` |
+| `PRAG_VECTORDB_PORT` | Qdrant server port | `6334` |
+| `PRAG_VECTORDB_COLLECTION` | Collection name | `prag-metrics` |
+| `PRAG_VECTORDB_ENCODER_DIR` | Encoder models directory | `./_models` |
+
+### OpenAI-compatible LLM Configuration
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `PRAG_LLM_BASE_URL` | LLM server base URL | `http://localhost:1234/v1/` |
+| `PRAG_LLM_API_KEY` | Authentication key |  |
+| `PRAG_LLM_MODEL` | Model identifier | `granite-3.1-8b-instruct` |
