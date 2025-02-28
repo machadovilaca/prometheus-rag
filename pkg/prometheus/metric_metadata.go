@@ -20,6 +20,7 @@ type MetricMetadata struct {
 	Labels []string `json:"labels,omitempty"`
 }
 
+// Validate validates the metric metadata
 func (m *MetricMetadata) Validate() error {
 	if m.Name == "" {
 		return errors.New("name is required")
@@ -28,6 +29,7 @@ func (m *MetricMetadata) Validate() error {
 	return nil
 }
 
+// ToMap converts the metric metadata to a map
 func (m *MetricMetadata) ToMap() map[string]any {
 	return map[string]any{
 		"name":   m.Name,

@@ -10,12 +10,12 @@ import (
 
 var _ = Describe("Add", func() {
 	var (
-		db vectordb.VectorDB
+		dbClient vectordb.Client
 	)
 
 	BeforeEach(func() {
 		var err error
-		db, err = vectordb.New(vectordb.Config{
+		dbClient, err = vectordb.New(vectordb.Config{
 			Host:           "localhost",
 			Port:           6334,
 			CollectionName: "test-collection",
@@ -24,10 +24,10 @@ var _ = Describe("Add", func() {
 	})
 
 	AfterEach(func() {
-		err := db.DeleteCollection()
+		err := dbClient.DeleteCollection()
 		Expect(err).NotTo(HaveOccurred())
 
-		err = db.Close()
+		err = dbClient.Close()
 		Expect(err).NotTo(HaveOccurred())
 	})
 
@@ -39,7 +39,7 @@ var _ = Describe("Add", func() {
 			Labels: []string{"label1", "label2"},
 		}
 
-		err := db.AddMetricMetadata(metadata)
+		err := dbClient.AddMetricMetadata(metadata)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
@@ -49,7 +49,7 @@ var _ = Describe("Add", func() {
 			Help: "Test help",
 		}
 
-		err := db.AddMetricMetadata(metadata)
+		err := dbClient.AddMetricMetadata(metadata)
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring("name is required"))
 	})
@@ -61,15 +61,15 @@ var _ = Describe("Add", func() {
 			Type: "counter",
 		}
 
-		err := db.AddMetricMetadata(metadata)
+		err := dbClient.AddMetricMetadata(metadata)
 		Expect(err).NotTo(HaveOccurred())
 
 		metadata.Help = "Updated help"
 
-		err = db.AddMetricMetadata(metadata)
+		err = dbClient.AddMetricMetadata(metadata)
 		Expect(err).NotTo(HaveOccurred())
 
-		results, err := db.SearchMetrics("test_metric", 10)
+		results, err := dbClient.SearchMetrics("test_metric", 10)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(results).To(HaveLen(1))
 		Expect(results[0].Help).To(Equal("Updated help"))
@@ -89,10 +89,10 @@ var _ = Describe("Add", func() {
 			},
 		}
 
-		err := db.BatchAddMetricMetadata(metadata)
+		err := dbClient.BatchAddMetricMetadata(metadata)
 		Expect(err).NotTo(HaveOccurred())
 
-		results, err := db.SearchMetrics("test", 10)
+		results, err := dbClient.SearchMetrics("test", 10)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(results).To(HaveLen(2))
 
@@ -101,10 +101,10 @@ var _ = Describe("Add", func() {
 	})
 
 	It("should skip batch add of metric metadata when there are none", func() {
-		err := db.BatchAddMetricMetadata([]*prometheus.MetricMetadata{})
+		err := dbClient.BatchAddMetricMetadata([]*prometheus.MetricMetadata{})
 		Expect(err).NotTo(HaveOccurred())
 
-		results, err := db.SearchMetrics("test", 10)
+		results, err := dbClient.SearchMetrics("test", 10)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(results).To(HaveLen(0))
 	})

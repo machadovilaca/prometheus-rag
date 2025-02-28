@@ -12,13 +12,14 @@ import (
 	"github.com/machadovilaca/prometheus-rag/pkg/vectordb"
 )
 
-type rag struct {
+// Client is the main client for the RAG
+type Client struct {
 	cfg config
 
-	vectorDBAPI     vectordb.VectorDB
-	prometheusAPI   prometheus.API
-	llm             llm.LLM
-	metricsMetadata []*prometheus.MetricMetadata
+	vectorDBClient   vectordb.Client
+	prometheusClient prometheus.Client
+	llmClient        llm.Client
+	metricsMetadata  []*prometheus.MetricMetadata
 }
 
 type config struct {
@@ -35,26 +36,27 @@ type config struct {
 	LLMModel   string `env:"PRAG_LLM_MODEL" default:"granite-3.1-8b-instruct"`
 }
 
-func New() (*rag, error) {
+// New creates a new RAG client
+func New() (*Client, error) {
 	log.Info().Msg("starting RAG")
 
 	var err error
-	r := &rag{}
+	r := &Client{}
 
 	if err := env.Load(&r.cfg, nil); err != nil {
 		return nil, fmt.Errorf("failed to load environment variables: %w", err)
 	}
 
-	r.vectorDBAPI, err = r.connectToVectorDB()
+	r.vectorDBClient, err = r.connectToVectorDB()
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to vectorDB: %w", err)
 	}
 
-	r.llm, err = llm.New(llm.Config{
-		BaseURL:  r.cfg.LLMBaseURL,
-		APIKey:   r.cfg.LLMApiKey,
-		Model:    r.cfg.LLMModel,
-		VectorDB: r.vectorDBAPI,
+	r.llmClient, err = llm.New(llm.Config{
+		BaseURL:        r.cfg.LLMBaseURL,
+		APIKey:         r.cfg.LLMApiKey,
+		Model:          r.cfg.LLMModel,
+		VectorDBClient: r.vectorDBClient,
 	})
 
 	err = r.startPrometheusSync()
@@ -65,8 +67,8 @@ func New() (*rag, error) {
 	return r, nil
 }
 
-func (r *rag) Query(query string) (string, error) {
-	response, err := r.llm.Run(query)
+func (r *Client) Query(query string) (string, error) {
+	response, err := r.llmClient.Run(query)
 	if err != nil {
 		return "", fmt.Errorf("failed to run LLM: %w", err)
 	}
@@ -74,7 +76,7 @@ func (r *rag) Query(query string) (string, error) {
 	return response, nil
 }
 
-func (r *rag) connectToVectorDB() (vectordb.VectorDB, error) {
+func (r *Client) connectToVectorDB() (vectordb.Client, error) {
 	log.Info().Msg("starting VectorDB client")
 	vectordbConfig := vectordb.Config{
 		Host:                   r.cfg.VectorDBHost,
@@ -91,7 +93,7 @@ func (r *rag) connectToVectorDB() (vectordb.VectorDB, error) {
 	return vectordbAPI, nil
 }
 
-func (r *rag) startPrometheusSync() error {
+func (r *Client) startPrometheusSync() error {
 	log.Info().Msg("starting Prometheus client")
 	var err error
 
@@ -99,7 +101,7 @@ func (r *rag) startPrometheusSync() error {
 		Address: r.cfg.PrometheusAddress,
 	}
 
-	r.prometheusAPI, err = prometheus.New(prometheusConfig)
+	r.prometheusClient, err = prometheus.New(prometheusConfig)
 	if err != nil {
 		return fmt.Errorf("failed to create prometheus API: %w", err)
 	}
@@ -119,12 +121,12 @@ func (r *rag) startPrometheusSync() error {
 	return nil
 }
 
-func (r *rag) listMetricsMetadata() {
+func (r *Client) listMetricsMetadata() {
 	var err error
 
 	log.Info().Msg("listing metrics metadata from Prometheus")
 
-	r.metricsMetadata, err = r.prometheusAPI.ListMetricsMetadata()
+	r.metricsMetadata, err = r.prometheusClient.ListMetricsMetadata()
 	if err != nil {
 		log.Error().Err(err).Msg("failed to list metrics metadata")
 		return
@@ -132,7 +134,7 @@ func (r *rag) listMetricsMetadata() {
 
 	log.Info().Msgf("found %d metrics metadata", len(r.metricsMetadata))
 
-	err = r.vectorDBAPI.BatchAddMetricMetadata(r.metricsMetadata)
+	err = r.vectorDBClient.BatchAddMetricMetadata(r.metricsMetadata)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to add metrics metadata to vectorDB")
 		return

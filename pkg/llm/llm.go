@@ -10,32 +10,36 @@ import (
 	"github.com/machadovilaca/prometheus-rag/pkg/vectordb"
 )
 
-type LLM interface {
+// Client interface for interacting with the LLM
+type Client interface {
+	// Run runs a query against the LLM
 	Run(query string) (string, error)
 }
 
+// Config represents the configuration for the LLM
 type Config struct {
 	BaseURL string
 	APIKey  string
 	Model   string
 
-	VectorDB vectordb.VectorDB
+	VectorDBClient vectordb.Client
 }
 
 type llm struct {
 	client *openai.Client
 	config Config
 
-	vectorDB vectordb.VectorDB
+	vectorDBClient vectordb.Client
 }
 
-func New(config Config) (LLM, error) {
+// New creates a new LLM client
+func New(config Config) (Client, error) {
 	if config.BaseURL == "" {
 		return nil, fmt.Errorf("base URL is required")
 	}
 
-	if config.VectorDB == nil {
-		return nil, fmt.Errorf("vectorDB is required")
+	if config.VectorDBClient == nil {
+		return nil, fmt.Errorf("VectorDBClient is required")
 	}
 
 	if config.Model == "" {
@@ -47,13 +51,13 @@ func New(config Config) (LLM, error) {
 			option.WithBaseURL(config.BaseURL),
 			option.WithAPIKey(config.APIKey),
 		),
-		config:   config,
-		vectorDB: config.VectorDB,
+		config:         config,
+		vectorDBClient: config.VectorDBClient,
 	}, nil
 }
 
 func (l *llm) Run(query string) (string, error) {
-	metrics, err := l.vectorDB.SearchMetrics(query, 10)
+	metrics, err := l.vectorDBClient.SearchMetrics(query, 10)
 	if err != nil {
 		return "", fmt.Errorf("failed to search metrics: %w", err)
 	}

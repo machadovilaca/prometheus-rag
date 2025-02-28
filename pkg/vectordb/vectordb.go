@@ -10,8 +10,8 @@ import (
 	"github.com/machadovilaca/prometheus-rag/pkg/prometheus"
 )
 
-// VectorDB represents the interface for interacting with the vector database
-type VectorDB interface {
+// Client interface for interacting with the VectorDB
+type Client interface {
 	// CreateCollection creates the collection in the vector database
 	CreateCollection() error
 
@@ -49,7 +49,7 @@ type vectorDB struct {
 }
 
 // New creates a new Qdrant client connection
-func New(cfg Config) (VectorDB, error) {
+func New(cfg Config) (Client, error) {
 	client, err := qdrant.NewClient(&qdrant.Config{
 		Host: cfg.Host,
 		Port: cfg.Port,

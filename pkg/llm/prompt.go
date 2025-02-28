@@ -14,10 +14,12 @@ import (
 //go:embed promql_prompt.tmpl
 var promptTemplate string
 
+// PromptData is the wrapper for metrics metadata to be used in the prompt
 type PromptData struct {
 	Metrics []*prometheus.MetricMetadata
 }
 
+// BuildPrompt builds a prompt for the LLM using the metrics metadata
 func BuildPrompt(metrics []*prometheus.MetricMetadata) (string, error) {
 	tmpl, err := template.New("promql_prompt").Parse(promptTemplate)
 	if err != nil {

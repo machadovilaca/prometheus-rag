@@ -10,12 +10,12 @@ import (
 
 var _ = Describe("Search", func() {
 	var (
-		db vectordb.VectorDB
+		dbClient vectordb.Client
 	)
 
 	BeforeEach(func() {
 		var err error
-		db, err = vectordb.New(vectordb.Config{
+		dbClient, err = vectordb.New(vectordb.Config{
 			Host:           "localhost",
 			Port:           6334,
 			CollectionName: "test-collection",
@@ -24,15 +24,15 @@ var _ = Describe("Search", func() {
 	})
 
 	AfterEach(func() {
-		err := db.DeleteCollection()
+		err := dbClient.DeleteCollection()
 		Expect(err).NotTo(HaveOccurred())
 
-		err = db.Close()
+		err = dbClient.Close()
 		Expect(err).NotTo(HaveOccurred())
 	})
 
 	It("should return best matching metrics first", func() {
-		err := db.AddMetricMetadata(&prometheus.MetricMetadata{
+		err := dbClient.AddMetricMetadata(&prometheus.MetricMetadata{
 			Name:   "http_requests_total",
 			Help:   "Total number of HTTP requests",
 			Type:   "counter",
@@ -40,7 +40,7 @@ var _ = Describe("Search", func() {
 		})
 		Expect(err).NotTo(HaveOccurred())
 
-		err = db.AddMetricMetadata(&prometheus.MetricMetadata{
+		err = dbClient.AddMetricMetadata(&prometheus.MetricMetadata{
 			Name:   "node_memory_usage",
 			Help:   "Memory usage of node",
 			Type:   "gauge",
@@ -48,13 +48,13 @@ var _ = Describe("Search", func() {
 		})
 		Expect(err).NotTo(HaveOccurred())
 
-		results, err := db.SearchMetrics("http requests", 10)
+		results, err := dbClient.SearchMetrics("http requests", 10)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(results).To(HaveLen(2))
 		Expect(results[0].Name).To(Equal("http_requests_total"))
 		Expect(results[1].Name).To(Equal("node_memory_usage"))
 
-		results, err = db.SearchMetrics("memory", 10)
+		results, err = dbClient.SearchMetrics("memory", 10)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(results).To(HaveLen(2))
 		Expect(results[0].Name).To(Equal("node_memory_usage"))
@@ -62,27 +62,27 @@ var _ = Describe("Search", func() {
 	})
 
 	It("should return empty results when no matches found", func() {
-		results, err := db.SearchMetrics("does not exist", 10)
+		results, err := dbClient.SearchMetrics("does not exist", 10)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(results).To(BeEmpty())
 	})
 
 	It("should respect the limit parameter", func() {
-		err := db.AddMetricMetadata(&prometheus.MetricMetadata{
+		err := dbClient.AddMetricMetadata(&prometheus.MetricMetadata{
 			Name: "metric1",
 			Help: "Test metric 1",
 			Type: "counter",
 		})
 		Expect(err).NotTo(HaveOccurred())
 
-		err = db.AddMetricMetadata(&prometheus.MetricMetadata{
+		err = dbClient.AddMetricMetadata(&prometheus.MetricMetadata{
 			Name: "metric2",
 			Help: "Test metric 2",
 			Type: "counter",
 		})
 		Expect(err).NotTo(HaveOccurred())
 
-		results, err := db.SearchMetrics("test metric", 1)
+		results, err := dbClient.SearchMetrics("test metric", 1)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(results).To(HaveLen(1))
 	})

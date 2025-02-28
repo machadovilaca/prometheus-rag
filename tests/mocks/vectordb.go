@@ -60,4 +60,4 @@ func (v *VectorDBMock) Close() error {
 	return nil
 }
 
-var _ vectordb.VectorDB = &VectorDBMock{}
+var _ vectordb.Client = &VectorDBMock{}

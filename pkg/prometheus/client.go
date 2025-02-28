@@ -11,8 +11,8 @@ import (
 	promv1 "github.com/prometheus/client_golang/api/prometheus/v1"
 )
 
-// API represents the Prometheus API
-type API interface {
+// Client interface for interacting with Prometheus
+type Client interface {
 	// ListMetricsMetadata lists all metrics metadata from Prometheus
 	ListMetricsMetadata() ([]*MetricMetadata, error)
 }
@@ -26,7 +26,8 @@ type api struct {
 	client promAPI.Client
 }
 
-func New(cfg Config) (API, error) {
+// New creates a new Prometheus client
+func New(cfg Config) (Client, error) {
 	client, err := promAPI.NewClient(promAPI.Config{
 		Address: cfg.Address,
 	})
