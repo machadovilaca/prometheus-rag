@@ -109,7 +109,7 @@ func (r *Client) startPrometheusSync() error {
 		return fmt.Errorf("failed to create prometheus API: %w", err)
 	}
 
-	ticker := time.NewTicker(10 * time.Minute)
+	ticker := time.NewTicker(time.Duration(r.cfg.PrometheusRefreshRateMinutes) * time.Minute)
 	go func() {
 		r.listMetricsMetadata()
 

@@ -8,7 +8,6 @@ import (
 
 	"github.com/openai/openai-go"
 	"github.com/openai/openai-go/option"
-	"github.com/rs/zerolog/log"
 
 	"github.com/machadovilaca/prometheus-rag/pkg/vectordb"
 )
@@ -39,6 +38,8 @@ type llm struct {
 func New(config Config) (Client, error) {
 	if config.BaseURL == "" {
 		return nil, fmt.Errorf("base URL is required")
+	} else if !strings.HasSuffix(config.BaseURL, "/") {
+		config.BaseURL = config.BaseURL + "/"
 	}
 
 	if config.VectorDBClient == nil {
@@ -49,11 +50,16 @@ func New(config Config) (Client, error) {
 		config.Model = ModelGranite318bInstruct
 	}
 
+	options := []option.RequestOption{
+		option.WithBaseURL(config.BaseURL),
+	}
+
+	if config.APIKey != "" {
+		options = append(options, option.WithAPIKey(config.APIKey))
+	}
+
 	return &llm{
-		client: openai.NewClient(
-			option.WithBaseURL(config.BaseURL),
-			option.WithAPIKey(config.APIKey),
-		),
+		client:         openai.NewClient(options...),
 		config:         config,
 		vectorDBClient: config.VectorDBClient,
 	}, nil
@@ -82,13 +88,11 @@ func (l *llm) Run(query string) (string, error) {
 	}
 
 	if len(chatCompletion.Choices) == 0 {
-		log.Error().Msg("no choices returned")
 		return "", fmt.Errorf("no choices returned")
 	}
 
 	parsed, err := parseXMLExtract(chatCompletion.Choices[0].Message.Content)
 	if err != nil {
-		log.Error().Err(err).Msg("failed to parse XML response")
 		return "", fmt.Errorf("failed to parse XML response: %w", err)
 	}
 
