@@ -1,13 +1,13 @@
 package vectordb
 
 import (
-	"context"
+	"errors"
 	"fmt"
+	"strings"
 
-	"github.com/qdrant/go-client/qdrant"
-
-	"github.com/machadovilaca/prometheus-rag/pkg/embeddings"
 	"github.com/machadovilaca/prometheus-rag/pkg/prometheus"
+	"github.com/machadovilaca/prometheus-rag/pkg/vectordb/qdrantdb"
+	"github.com/rs/zerolog/log"
 )
 
 // Client interface for interacting with the VectorDB
@@ -34,82 +34,31 @@ type Client interface {
 
 // Config represents the configuration for the vector database
 type Config struct {
-	Host string
-	Port int
+	Provider string
+
+	Sqlite3DBPath string
+
+	QdrantHost string
+	QdrantPort int
 
 	CollectionName         string
 	EncoderOutputDirectory string
 }
 
-type vectorDB struct {
-	client  *qdrant.Client
-	encoder embeddings.Encoder
+// ErrUnsupportedProvider is returned when an unsupported provider is specified
+var ErrUnsupportedProvider = errors.New("unsupported provider")
 
-	collectionName string
-}
-
-// New creates a new Qdrant client connection
 func New(cfg Config) (Client, error) {
-	client, err := qdrant.NewClient(&qdrant.Config{
-		Host: cfg.Host,
-		Port: cfg.Port,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to create qdrant client: %w", err)
+	switch strings.ToLower(cfg.Provider) {
+	case "qdrant":
+		log.Info().Msg("starting Qdrant client")
+		return qdrantdb.New(qdrantdb.Config{
+			QdrantHost:             cfg.QdrantHost,
+			QdrantPort:             cfg.QdrantPort,
+			CollectionName:         cfg.CollectionName,
+			EncoderOutputDirectory: cfg.EncoderOutputDirectory,
+		})
+	default:
+		return nil, fmt.Errorf("%w: %s", ErrUnsupportedProvider, cfg.Provider)
 	}
-
-	encoder, err := embeddings.NewEncoder(embeddings.Config{
-		ModelsDir: cfg.EncoderOutputDirectory,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to create encoder: %w", err)
-	}
-
-	if cfg.CollectionName == "" {
-		return nil, fmt.Errorf("collection name is required")
-	}
-
-	v := &vectorDB{client: client, encoder: encoder, collectionName: cfg.CollectionName}
-
-	if err := v.CreateCollection(); err != nil {
-		return nil, fmt.Errorf("failed to create collection: %w", err)
-	}
-
-	return v, nil
-}
-
-func (v *vectorDB) CreateCollection() error {
-	exists, err := v.client.CollectionExists(context.Background(), v.collectionName)
-	if err != nil {
-		return fmt.Errorf("failed to check if collection exists: %w", err)
-	}
-
-	if exists {
-		return nil
-	}
-
-	encodingDimension, err := v.encoder.GetDimension()
-	if err != nil {
-		return fmt.Errorf("failed to get encoding dimension: %w", err)
-	}
-
-	if err = v.client.CreateCollection(context.Background(), &qdrant.CreateCollection{
-		CollectionName: v.collectionName,
-		VectorsConfig: qdrant.NewVectorsConfig(&qdrant.VectorParams{
-			Size:     uint64(encodingDimension),
-			Distance: qdrant.Distance_Cosine,
-		}),
-	}); err != nil {
-		return fmt.Errorf("failed to create collection: %w", err)
-	}
-
-	return nil
-}
-
-func (v *vectorDB) DeleteCollection() error {
-	return v.client.DeleteCollection(context.Background(), v.collectionName)
-}
-
-func (v *vectorDB) Close() error {
-	return v.client.Close()
 }

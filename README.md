@@ -84,8 +84,10 @@ The application can be configured using the following environment variables:
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `PRAG_VECTORDB_HOST` | Qdrant server host | `localhost` |
-| `PRAG_VECTORDB_PORT` | Qdrant server port | `6334` |
+| `PRAG_VECTORDB_PROVIDER` | VectorDB provider (sqlite3, qdrant) | `qdrant` |
+| `PRAG_VECTORDB_SQLITE3_DB_PATH` | SQLite3 database path (Required only if SQLite3 provider) | `./_data/prag.db` |
+| `PRAG_VECTORDB_QDRANT_HOST` | Qdrant host (Required only if Qdrant provider)  | `localhost` |
+| `PRAG_VECTORDB_QDRANT_PORT` | Qdrant port (Required only if Qdrant provider) | `6333` |
 | `PRAG_VECTORDB_COLLECTION` | Collection name | `prag-metrics` |
 | `PRAG_VECTORDB_ENCODER_DIR` | Encoder models directory | `./_models` |
 

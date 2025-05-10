@@ -1,4 +1,4 @@
-package vectordb_test
+package qdrantdb_test
 
 import (
 	. "github.com/onsi/ginkgo/v2"
@@ -16,8 +16,9 @@ var _ = Describe("Add", func() {
 	BeforeEach(func() {
 		var err error
 		dbClient, err = vectordb.New(vectordb.Config{
-			Host:           "localhost",
-			Port:           6334,
+			Provider:       "qdrant",
+			QdrantHost:     "localhost",
+			QdrantPort:     6334,
 			CollectionName: "test-collection",
 		})
 		Expect(err).NotTo(HaveOccurred())

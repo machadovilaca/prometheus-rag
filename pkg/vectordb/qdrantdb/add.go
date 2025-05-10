@@ -1,4 +1,4 @@
-package vectordb
+package qdrantdb
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"github.com/machadovilaca/prometheus-rag/pkg/prometheus"
 )
 
-func (v *vectorDB) AddMetricMetadata(metadata *prometheus.MetricMetadata) error {
+func (v *qdrantDB) AddMetricMetadata(metadata *prometheus.MetricMetadata) error {
 	pointStruct, err := v.newPointStruct(metadata)
 	if err != nil {
 		return fmt.Errorf("failed to create point struct: %w", err)
@@ -31,7 +31,7 @@ func (v *vectorDB) AddMetricMetadata(metadata *prometheus.MetricMetadata) error 
 	return nil
 }
 
-func (v *vectorDB) BatchAddMetricMetadata(metadata []*prometheus.MetricMetadata) error {
+func (v *qdrantDB) BatchAddMetricMetadata(metadata []*prometheus.MetricMetadata) error {
 	if len(metadata) == 0 {
 		log.Info().Msg("skipping batch add of metric metadata because there are none")
 		return nil
@@ -62,7 +62,7 @@ func (v *vectorDB) BatchAddMetricMetadata(metadata []*prometheus.MetricMetadata)
 	return nil
 }
 
-func (v *vectorDB) newPointStruct(metadata *prometheus.MetricMetadata) (*qdrant.PointStruct, error) {
+func (v *qdrantDB) newPointStruct(metadata *prometheus.MetricMetadata) (*qdrant.PointStruct, error) {
 	encodedMetadata, err := v.encoder.EncodeMetricMetadata(*metadata)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encode metric metadata: %w", err)

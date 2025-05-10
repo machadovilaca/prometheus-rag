@@ -1,4 +1,4 @@
-package vectordb
+package qdrantdb
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/machadovilaca/prometheus-rag/pkg/prometheus"
 )
 
-func (v *vectorDB) SearchMetrics(query string, limit uint64) ([]*prometheus.MetricMetadata, error) {
+func (v *qdrantDB) SearchMetrics(query string, limit uint64) ([]*prometheus.MetricMetadata, error) {
 	encodedQuery, err := v.encoder.EncodeQuery(query)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encode query: %w", err)

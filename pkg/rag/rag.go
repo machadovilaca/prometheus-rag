@@ -26,8 +26,10 @@ type config struct {
 	PrometheusAddress            string `env:"PRAG_PROMETHEUS_ADDRESS" default:"http://localhost:9090"`
 	PrometheusRefreshRateMinutes int    `env:"PRAG_PROMETHEUS_REFRESH_RATE_MINUTES" default:"10"`
 
-	VectorDBHost       string `env:"PRAG_VECTORDB_HOST" default:"localhost"`
-	VectorDBPort       int    `env:"PRAG_VECTORDB_PORT" default:"6334"`
+	VectorDBProvider   string `env:"PRAG_VECTORDB_PROVIDER" default:"sqlite3"`
+	Sqlite3DBPath      string `env:"PRAG_VECTORDB_SQLITE3_DB_PATH" default:"./_data/metrics.db"`
+	VectorDBQdrantHost string `env:"PRAG_VECTORDB_QDRANT_HOST" default:"localhost"`
+	VectorDBQdrantPort int    `env:"PRAG_VECTORDB_QDRANT_PORT" default:"6334"`
 	VectorDBCollection string `env:"PRAG_VECTORDB_COLLECTION" default:"prag-metrics"`
 	VectorDBEncoderDir string `env:"PRAG_VECTORDB_ENCODER_DIR" default:"./_models"`
 
@@ -52,6 +54,7 @@ func New() (*Client, error) {
 		return nil, fmt.Errorf("failed to connect to vectorDB: %w", err)
 	}
 
+	log.Info().Msg("starting LLM client")
 	r.llmClient, err = llm.New(llm.Config{
 		BaseURL:        r.cfg.LLMBaseURL,
 		APIKey:         r.cfg.LLMApiKey,
@@ -82,8 +85,10 @@ func (r *Client) Query(query string) (string, error) {
 func (r *Client) connectToVectorDB() (vectordb.Client, error) {
 	log.Info().Msg("starting VectorDB client")
 	vectordbConfig := vectordb.Config{
-		Host:                   r.cfg.VectorDBHost,
-		Port:                   r.cfg.VectorDBPort,
+		Provider:               r.cfg.VectorDBProvider,
+		Sqlite3DBPath:          r.cfg.Sqlite3DBPath,
+		QdrantHost:             r.cfg.VectorDBQdrantHost,
+		QdrantPort:             r.cfg.VectorDBQdrantPort,
 		CollectionName:         r.cfg.VectorDBCollection,
 		EncoderOutputDirectory: r.cfg.VectorDBEncoderDir,
 	}
