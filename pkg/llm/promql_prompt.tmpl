@@ -8,6 +8,28 @@ You must strictly adhere to these rules:
 - Do not include any explanatory text before or after the XML.
 - The <promql> node must contain your final PromQL expression.
 - If you cannot produce a meaningful expression with the provided metrics, return an empty <promql> node.
+- Absolutely no newlines or spaces in the <promql> node.
+
+Prometheus Query Language (PromQL) Quick Reference
+
+Operators:
+- Arithmetic: +, -, *, /, %, ^
+- Comparison: ==, !=, >, <, >=, <=
+- Set: and, or, unless
+- Aggregation: sum, avg, min, max, count, count_values, stddev, stdvar, topk, bottomk, quantile
+
+Functions:
+- rate(), irate(), increase(), delta(), deriv(), predict_linear()
+- abs(), absent(), ceil(), floor(), clamp_max(), clamp_min()
+- changes(), resets(), histogram_quantile(), timestamp(), scalar(), vector()
+
+Vector Matching Keywords:
+- on
+- ignoring
+
+Group Modifiers:
+- group_left
+- group_right
 
 XML format to return:
 <root>
@@ -20,12 +42,12 @@ XML format to return:
 
 Given the following:
 - Available Metrics:
-{{- range .Metrics }}
+{{ range .Metrics }}
   - Name: {{ .Name }}
     Help: {{ .Help }}
     Type: {{ .Type }}
     Labels: [{{ range $i, $label := .Labels }}{{ if $i }}, {{ end }}{{ $label }}{{ end }}]
-{{- end }}
+{{ end }}
 
 Generate the PromQL expression that best answers the user's question based on the available metrics, and insert it between <promql> and </promql> in the <root>... </root> XML.
 
