@@ -106,6 +106,18 @@ type xmlResponse struct {
 }
 
 func parseXMLExtract(xmlStr string) (string, error) {
+	// Remove markdown code blocks if present
+	xmlStr = strings.TrimSpace(xmlStr)
+	if strings.HasPrefix(xmlStr, "```xml") {
+		xmlStr = strings.TrimPrefix(xmlStr, "```xml")
+		xmlStr = strings.TrimSuffix(xmlStr, "```")
+		xmlStr = strings.TrimSpace(xmlStr)
+	} else if strings.HasPrefix(xmlStr, "```") {
+		xmlStr = strings.TrimPrefix(xmlStr, "```")
+		xmlStr = strings.TrimSuffix(xmlStr, "```")
+		xmlStr = strings.TrimSpace(xmlStr)
+	}
+
 	var response xmlResponse
 	decoder := xml.NewDecoder(strings.NewReader(xmlStr))
 	err := decoder.Decode(&response)

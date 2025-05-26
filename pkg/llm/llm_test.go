@@ -12,9 +12,9 @@ import (
 
 var _ = Describe("LLM", func() {
 	const (
-		baseURL = "http://localhost:1234/v1/"
+		baseURL = "http://127.0.0.1:1234/v1/"
 		apiKey  = "test-api-key"
-		model   = llm.ModelGranite318bInstruct
+		model   = "gemma-3-27b-it"
 	)
 
 	var (
@@ -27,8 +27,8 @@ var _ = Describe("LLM", func() {
 		mockDB := mocks.NewVectorDBMock()
 		mockDB.SearchMetricsFunc = func(query string, limit uint64) ([]*prometheus.MetricMetadata, error) {
 			return []*prometheus.MetricMetadata{
-				{Name: "metric1", Help: "help1", Type: "counter", Labels: []string{"label1", "label2"}},
-				{Name: "metric2", Help: "help2", Type: "gauge", Labels: []string{"label3", "label4"}},
+				{Name: "up", Help: "Whether the instance is up", Type: "gauge", Labels: []string{"instance", "job"}},
+				{Name: "kube_pod_status_phase", Help: "Pod status phase", Type: "gauge", Labels: []string{"pod", "namespace", "phase"}},
 			}, nil
 		}
 		dbClient = mockDB
@@ -65,7 +65,7 @@ var _ = Describe("LLM", func() {
 
 		It("should fail with invalid base URL", func() {
 			llmClient, err = llm.New(llm.Config{
-				BaseURL:        "http://localhost:8080",
+				BaseURL:        "http://127.0.0.1:9999/v1/",
 				APIKey:         apiKey,
 				Model:          model,
 				VectorDBClient: dbClient,
