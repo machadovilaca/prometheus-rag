@@ -7,6 +7,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 
+	"github.com/machadovilaca/prometheus-rag/pkg/config"
 	"github.com/machadovilaca/prometheus-rag/pkg/rag"
 )
 
@@ -19,15 +20,15 @@ type Server struct {
 }
 
 // New creates a new Server
-func New(host string, port string) (*Server, error) {
-	rag, err := rag.New()
+func New(cfg *config.Config) (*Server, error) {
+	rag, err := rag.New(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to run RAG: %v", err)
 	}
 
 	return &Server{
-		host: host,
-		port: port,
+		host: cfg.Server.Host,
+		port: cfg.Server.Port,
 
 		rag: rag,
 	}, nil

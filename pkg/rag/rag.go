@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
-	"go-simpler.org/env"
 
+	"github.com/machadovilaca/prometheus-rag/pkg/config"
 	"github.com/machadovilaca/prometheus-rag/pkg/llm"
 	"github.com/machadovilaca/prometheus-rag/pkg/prometheus"
 	"github.com/machadovilaca/prometheus-rag/pkg/vectordb"
@@ -14,7 +14,7 @@ import (
 
 // Client is the main client for the RAG
 type Client struct {
-	cfg config
+	cfg config.RAGConfig
 
 	vectorDBClient   vectordb.Client
 	prometheusClient prometheus.Client
@@ -22,50 +22,28 @@ type Client struct {
 	metricsMetadata  []*prometheus.MetricMetadata
 }
 
-type config struct {
-	PrometheusAddress            string `env:"PRAG_PROMETHEUS_ADDRESS" default:"http://localhost:9090"`
-	PrometheusRefreshRateMinutes int    `env:"PRAG_PROMETHEUS_REFRESH_RATE_MINUTES" default:"10"`
-
-	VectorDBProvider   string `env:"PRAG_VECTORDB_PROVIDER" default:"sqlite3"`
-	Sqlite3DBPath      string `env:"PRAG_VECTORDB_SQLITE3_DB_PATH" default:"./_data/metrics.db"`
-	VectorDBQdrantHost string `env:"PRAG_VECTORDB_QDRANT_HOST" default:"localhost"`
-	VectorDBQdrantPort int    `env:"PRAG_VECTORDB_QDRANT_PORT" default:"6334"`
-	VectorDBCollection string `env:"PRAG_VECTORDB_COLLECTION" default:"prag-metrics"`
-	VectorDBEncoderDir string `env:"PRAG_VECTORDB_ENCODER_DIR" default:"./_models"`
-
-	LLMBaseURL string `env:"PRAG_LLM_BASE_URL" default:"http://localhost:1234/v1/"`
-	LLMApiKey  string `env:"PRAG_LLM_API_KEY"`
-	LLMModel   string `env:"PRAG_LLM_MODEL" default:"granite-3.1-8b-instruct"`
-}
-
 // New creates a new RAG client
-func New() (*Client, error) {
+func New(cfg *config.Config) (*Client, error) {
 	log.Info().Msg("starting RAG")
 
 	var err error
 	r := &Client{}
 
-	if err := env.Load(&r.cfg, nil); err != nil {
-		return nil, fmt.Errorf("failed to load environment variables: %w", err)
-	}
-
-	r.vectorDBClient, err = r.connectToVectorDB()
+	r.vectorDBClient, err = r.connectToVectorDB(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to vectorDB: %w", err)
 	}
 
+	// Create RAG-specific configuration
+	r.cfg = cfg.ToRAGConfig(r.vectorDBClient)
+
 	log.Info().Msg("starting LLM client")
-	r.llmClient, err = llm.New(llm.Config{
-		BaseURL:        r.cfg.LLMBaseURL,
-		APIKey:         r.cfg.LLMApiKey,
-		Model:          r.cfg.LLMModel,
-		VectorDBClient: r.vectorDBClient,
-	})
+	r.llmClient, err = llm.New(r.cfg.LLMConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create LLM client: %w", err)
 	}
 
-	err = r.startPrometheusSync()
+	err = r.startPrometheusSync(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start prometheus sync: %w", err)
 	}
@@ -82,16 +60,9 @@ func (r *Client) Query(query string) (string, error) {
 	return response, nil
 }
 
-func (r *Client) connectToVectorDB() (vectordb.Client, error) {
+func (r *Client) connectToVectorDB(cfg *config.Config) (vectordb.Client, error) {
 	log.Info().Msg("starting VectorDB client")
-	vectordbConfig := vectordb.Config{
-		Provider:               r.cfg.VectorDBProvider,
-		Sqlite3DBPath:          r.cfg.Sqlite3DBPath,
-		QdrantHost:             r.cfg.VectorDBQdrantHost,
-		QdrantPort:             r.cfg.VectorDBQdrantPort,
-		CollectionName:         r.cfg.VectorDBCollection,
-		EncoderOutputDirectory: r.cfg.VectorDBEncoderDir,
-	}
+	vectordbConfig := cfg.ToVectorDBConfig()
 
 	vectordbAPI, err := vectordb.New(vectordbConfig)
 	if err != nil {
@@ -101,20 +72,18 @@ func (r *Client) connectToVectorDB() (vectordb.Client, error) {
 	return vectordbAPI, nil
 }
 
-func (r *Client) startPrometheusSync() error {
+func (r *Client) startPrometheusSync(cfg *config.Config) error {
 	log.Info().Msg("starting Prometheus client")
 	var err error
 
-	prometheusConfig := prometheus.Config{
-		Address: r.cfg.PrometheusAddress,
-	}
+	prometheusConfig := cfg.ToPrometheusConfig()
 
 	r.prometheusClient, err = prometheus.New(prometheusConfig)
 	if err != nil {
 		return fmt.Errorf("failed to create prometheus API: %w", err)
 	}
 
-	ticker := time.NewTicker(time.Duration(r.cfg.PrometheusRefreshRateMinutes) * time.Minute)
+	ticker := time.NewTicker(r.cfg.GetPrometheusRefreshInterval())
 	go func() {
 		r.listMetricsMetadata()
 
