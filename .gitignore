@@ -1,3 +1,4 @@
 _models
+_data
 hack/qdrant_storage
 .idea

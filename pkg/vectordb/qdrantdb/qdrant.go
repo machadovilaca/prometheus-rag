@@ -12,10 +12,10 @@ import (
 
 // Config holds the configuration for the Qdrant client
 type Config struct {
-	QdrantHost             string
-	QdrantPort             int
-	CollectionName         string
-	EncoderOutputDirectory string
+	QdrantHost     string
+	QdrantPort     int
+	CollectionName string
+	Encoder        embeddings.Encoder
 }
 
 type qdrantDB struct {
@@ -35,19 +35,11 @@ func New(cfg Config) (*qdrantDB, error) {
 		return nil, fmt.Errorf("failed to create qdrant client: %w", err)
 	}
 
-	log.Info().Msgf("creating encoder with output directory %s", cfg.EncoderOutputDirectory)
-	encoder, err := embeddings.NewEncoder(embeddings.Config{
-		ModelsDir: cfg.EncoderOutputDirectory,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to create encoder: %w", err)
-	}
-
 	if cfg.CollectionName == "" {
 		return nil, fmt.Errorf("collection name is required")
 	}
 
-	v := &qdrantDB{client: client, encoder: encoder, collectionName: cfg.CollectionName}
+	v := &qdrantDB{client: client, encoder: cfg.Encoder, collectionName: cfg.CollectionName}
 
 	if err := v.CreateCollection(); err != nil {
 		return nil, fmt.Errorf("failed to create collection: %w", err)

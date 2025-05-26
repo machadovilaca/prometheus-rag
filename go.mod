@@ -3,7 +3,9 @@ module github.com/machadovilaca/prometheus-rag
 go 1.23.1
 
 require (
+	github.com/asg017/sqlite-vec-go-bindings v0.1.6
 	github.com/google/uuid v1.6.0
+	github.com/mattn/go-sqlite3 v1.14.28
 	github.com/nlpodyssey/cybertron v0.2.1
 	github.com/onsi/ginkgo/v2 v2.22.2
 	github.com/onsi/gomega v1.36.2

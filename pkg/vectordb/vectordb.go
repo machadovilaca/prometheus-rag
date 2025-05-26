@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/rs/zerolog/log"
+
+	"github.com/machadovilaca/prometheus-rag/pkg/embeddings"
 	"github.com/machadovilaca/prometheus-rag/pkg/prometheus"
 	"github.com/machadovilaca/prometheus-rag/pkg/vectordb/qdrantdb"
-	"github.com/rs/zerolog/log"
+	"github.com/machadovilaca/prometheus-rag/pkg/vectordb/sqlite3"
 )
 
 // Client interface for interacting with the VectorDB
@@ -49,14 +52,29 @@ type Config struct {
 var ErrUnsupportedProvider = errors.New("unsupported provider")
 
 func New(cfg Config) (Client, error) {
+	log.Info().Msgf("creating encoder with output directory %s", cfg.EncoderOutputDirectory)
+	encoder, err := embeddings.NewEncoder(embeddings.Config{
+		ModelsDir: cfg.EncoderOutputDirectory,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create encoder: %w", err)
+	}
+
 	switch strings.ToLower(cfg.Provider) {
 	case "qdrant":
 		log.Info().Msg("starting Qdrant client")
 		return qdrantdb.New(qdrantdb.Config{
-			QdrantHost:             cfg.QdrantHost,
-			QdrantPort:             cfg.QdrantPort,
-			CollectionName:         cfg.CollectionName,
-			EncoderOutputDirectory: cfg.EncoderOutputDirectory,
+			QdrantHost:     cfg.QdrantHost,
+			QdrantPort:     cfg.QdrantPort,
+			CollectionName: cfg.CollectionName,
+			Encoder:        encoder,
+		})
+	case "sqlite3":
+		log.Info().Msg("starting SQLite3 client")
+		return sqlite3.New(sqlite3.Config{
+			DBPath:         cfg.Sqlite3DBPath,
+			CollectionName: cfg.CollectionName,
+			Encoder:        encoder,
 		})
 	default:
 		return nil, fmt.Errorf("%w: %s", ErrUnsupportedProvider, cfg.Provider)
