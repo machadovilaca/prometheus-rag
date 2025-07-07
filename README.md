@@ -39,6 +39,7 @@ The project uses a modular configuration system that allows individual packages 
 
 - Podman/Docker and Podman/Docker Compose
 - Go 1.21+
+- Sqlite development package (`sudo dnf install sqlite-devel` on Fedora)
 - Access to an LLM server
 
 ## 🚀 Quick Start

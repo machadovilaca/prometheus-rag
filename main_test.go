@@ -28,12 +28,12 @@ var _ = Describe("Configuration Integration", func() {
 		AfterEach(func() {
 			// Clean up environment variables
 			for _, envVar := range envVarsToCleanup {
-				os.Unsetenv(envVar)
+				_ = os.Unsetenv(envVar)
 			}
 		})
 
 		setEnvVar := func(key, value string) {
-			os.Setenv(key, value)
+			_ = os.Setenv(key, value)
 			envVarsToCleanup = append(envVarsToCleanup, key)
 		}
 
@@ -92,7 +92,7 @@ var _ = Describe("Configuration Integration", func() {
 			originalEnvVars = make(map[string]string)
 			for _, envVar := range envVars {
 				originalEnvVars[envVar] = os.Getenv(envVar)
-				os.Unsetenv(envVar)
+				_ = os.Unsetenv(envVar)
 			}
 		})
 
@@ -100,7 +100,7 @@ var _ = Describe("Configuration Integration", func() {
 			// Restore original values after test
 			for envVar, val := range originalEnvVars {
 				if val != "" {
-					os.Setenv(envVar, val)
+					_ = os.Setenv(envVar, val)
 				}
 			}
 		})

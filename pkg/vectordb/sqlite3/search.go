@@ -33,7 +33,9 @@ func (v *sqlite3DB) SearchMetrics(query string, limit uint64) ([]*prometheus.Met
 	if err != nil {
 		return nil, fmt.Errorf("failed to query metrics: %w", err)
 	}
-	defer rows.Close()
+	defer func() {
+		_ = rows.Close()
+	}()
 
 	type metricWithScore struct {
 		metadata *prometheus.MetricMetadata

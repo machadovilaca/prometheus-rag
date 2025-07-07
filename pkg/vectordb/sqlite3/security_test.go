@@ -1,20 +1,15 @@
-package sqlite3
+package sqlite3_test
 
 import (
 	"os"
 	"path/filepath"
-	"testing"
 
 	"github.com/machadovilaca/prometheus-rag/pkg/embeddings"
 	"github.com/machadovilaca/prometheus-rag/pkg/prometheus"
+	"github.com/machadovilaca/prometheus-rag/pkg/vectordb/sqlite3"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
-
-func TestSecurityValidation(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "SQLite3 Security Suite")
-}
 
 var _ = Describe("SQLite3 Security Validation", func() {
 	var (
@@ -69,20 +64,20 @@ var _ = Describe("SQLite3 Security Validation", func() {
 	})
 
 	AfterEach(func() {
-		os.RemoveAll(tempDir)
+		_ = os.RemoveAll(tempDir)
 	})
 
 	Describe("Collection Name Validation", func() {
 		It("should reject malicious collection names", func() {
 			for _, maliciousName := range maliciousCollectionNames {
 				dbPath := filepath.Join(tempDir, "test.db")
-				cfg := Config{
+				cfg := sqlite3.Config{
 					DBPath:         dbPath,
 					CollectionName: maliciousName,
 					Encoder:        encoder,
 				}
 
-				_, err := New(cfg)
+				_, err := sqlite3.New(cfg)
 				Expect(err).To(HaveOccurred(), "Expected error for malicious collection name: %s", maliciousName)
 				Expect(err.Error()).To(ContainSubstring("invalid collection name"),
 					"Error should indicate invalid collection name for: %s", maliciousName)
@@ -101,28 +96,28 @@ var _ = Describe("SQLite3 Security Validation", func() {
 
 			for _, validName := range validNames {
 				dbPath := filepath.Join(tempDir, "test_"+validName+".db")
-				cfg := Config{
+				cfg := sqlite3.Config{
 					DBPath:         dbPath,
 					CollectionName: validName,
 					Encoder:        encoder,
 				}
 
-				db, err := New(cfg)
+				db, err := sqlite3.New(cfg)
 				Expect(err).NotTo(HaveOccurred(), "Valid collection name should be accepted: %s", validName)
 
 				// Clean up
 				if db != nil {
-					db.Close()
+					_ = db.Close()
 				}
 			}
 		})
 	})
 
 	Describe("SQL Identifier Validator", func() {
-		var validator *SQLIdentifierValidator
+		var validator *sqlite3.SQLIdentifierValidator
 
 		BeforeEach(func() {
-			validator = NewSQLIdentifierValidator()
+			validator = sqlite3.NewSQLIdentifierValidator()
 		})
 
 		It("should validate safe identifiers", func() {

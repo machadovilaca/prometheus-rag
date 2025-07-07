@@ -35,12 +35,12 @@ var _ = Describe("Config", func() {
 
 			AfterEach(func() {
 				for _, envVar := range envVarsToCleanup {
-					os.Unsetenv(envVar)
+					_ = os.Unsetenv(envVar)
 				}
 			})
 
 			setEnvVar := func(key, value string) {
-				os.Setenv(key, value)
+				_ = os.Setenv(key, value)
 				envVarsToCleanup = append(envVarsToCleanup, key)
 			}
 

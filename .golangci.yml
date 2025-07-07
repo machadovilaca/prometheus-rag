@@ -1,20 +1,28 @@
+version: 2
+
 linters:
   enable:
-    - gofmt
     - govet
     - revive
-    - gosimple
     - staticcheck
     - ineffassign
     - unused
     - misspell
 
+  settings:
+    revive:
+      rules:
+        - name: dot-imports
+          severity: warning
+          disabled: false
+          exclude: [""]
+          arguments:
+            - allowed-packages: ["github.com/onsi/ginkgo/v2", "github.com/onsi/gomega"]
+
+formatters:
+  enable:
+    - gofmt
+
 issues:
   max-issues-per-linter: 0
   max-same-issues: 0
-
-linters-settings:
-  revive:
-    rules:
-      - name: dot-imports
-        exclude: ["TEST"]

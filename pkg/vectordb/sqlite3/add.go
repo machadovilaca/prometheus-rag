@@ -60,7 +60,9 @@ func (v *sqlite3DB) BatchAddMetricMetadata(metadataArray []*prometheus.MetricMet
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() {
+		_ = tx.Rollback()
+	}()
 
 	// Use secure identifier escaping for table name
 	safeTableName, err := v.validator.SafeIdentifier(v.collectionName)
@@ -78,7 +80,9 @@ func (v *sqlite3DB) BatchAddMetricMetadata(metadataArray []*prometheus.MetricMet
 	if err != nil {
 		return fmt.Errorf("failed to prepare statement: %w", err)
 	}
-	defer stmt.Close()
+	defer func() {
+		_ = stmt.Close()
+	}()
 
 	for _, metadata := range metadataArray {
 		if err := metadata.Validate(); err != nil {

@@ -16,10 +16,11 @@ var _ = Describe("Add", func() {
 	BeforeEach(func() {
 		var err error
 		dbClient, err = vectordb.New(vectordb.Config{
-			Provider:       "qdrant",
-			QdrantHost:     "localhost",
-			QdrantPort:     6334,
-			CollectionName: "test-collection",
+			Provider:               "qdrant",
+			QdrantHost:             "localhost",
+			QdrantPort:             6334,
+			CollectionName:         "test-collection",
+			EncoderOutputDirectory: "../../../_models",
 		})
 		Expect(err).NotTo(HaveOccurred())
 	})
