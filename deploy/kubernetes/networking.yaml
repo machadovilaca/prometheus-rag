@@ -1,0 +1,105 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: prometheus-rag-network-policy
+  namespace: prometheus-rag
+spec:
+  podSelector:
+    matchLabels:
+      app: prometheus-rag
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow ingress from frontend/API gateway
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: frontend
+    - namespaceSelector:
+        matchLabels:
+          name: api-gateway
+    ports:
+    - protocol: TCP
+      port: 8080
+  # Allow ingress from monitoring namespace (Prometheus)
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    ports:
+    - protocol: TCP
+      port: 8080
+  egress:
+  # Allow egress to Qdrant
+  - to:
+    - podSelector:
+        matchLabels:
+          app: qdrant
+    ports:
+    - protocol: TCP
+      port: 6334
+  # Allow egress to Prometheus
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    - podSelector:
+        matchLabels:
+          app: prometheus
+    ports:
+    - protocol: TCP
+      port: 9090
+  # Allow egress to LLM service
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: ai
+    - podSelector:
+        matchLabels:
+          app: llm-service
+    ports:
+    - protocol: TCP
+      port: 8080
+  # Allow DNS resolution
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: prometheus-rag-ingress
+  namespace: prometheus-rag
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+    nginx.ingress.kubernetes.io/body-size: "1m"
+    nginx.ingress.kubernetes.io/proxy-body-size: "1m"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "https://your-frontend.com"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "POST, GET, OPTIONS"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "Content-Type, Authorization"
+spec:
+  tls:
+  - hosts:
+    - prometheus-rag.your-domain.com
+    secretName: prometheus-rag-tls
+  rules:
+  - host: prometheus-rag.your-domain.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: prometheus-rag
+            port:
+              number: 8080

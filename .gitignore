@@ -2,3 +2,18 @@ _models
 _data
 hack/qdrant_storage
 .idea
+
+# Environment files with secrets
+.env
+.env.local
+.env.production
+.env.staging
+*.env
+
+# Security and credentials
+*.key
+*.pem
+*.p12
+*.pfx
+secrets/
+credentials/
